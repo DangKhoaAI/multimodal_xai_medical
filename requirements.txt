@@ -1,2 +1,11 @@
+flask
+pandas
 numpy
-keras
+Pillow
+tensorflow
+scikit-learn
+opencv-python
+matplotlib
+plotly
+scipy
+nltk

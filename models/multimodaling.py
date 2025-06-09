@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.1
+#       jupytext_version: 1.17.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -32,7 +32,7 @@ from keras.layers import Input, Dense, Conv1D, Dropout, Flatten, Conv2D, MaxPool
 from keras.models import Model
 
 # %% [markdown]
-# ### Modeling
+# ## Modeling : Multimodel (Text +Image Fusion)
 #
 # This section focuses on the multimodal
 # architecture which consists of a text submodel and
@@ -44,7 +44,7 @@ from keras.models import Model
 # pretrained encoders are then finely tuned on low learning rates.
 
 # %% [markdown]
-# ### Set up train/test data
+# ### Load data và chia làm train/test
 
 # %%
 with open('data/text_processed.pkl', 'rb') as handle:
@@ -72,7 +72,7 @@ X_train_img, X_test_img, y_train, y_test = train_test_split(img, y, test_size=0.
 # random state is the same so same id splits go to both types of datasets
 
 # %% [markdown]
-# ### Text CNN
+# ## Text model train :Text CNN
 #
 # We choose a CNN based text classifier (Kim,2015) to meet this task. We also extend the 1-D CNN for classifying short e-commerce product descriptions (Eskesen, 2017) to our text classifier. Resemblance in structure of product descriptions, features of short radiology reports (27.4 words per case on average) are extracted by the Word2Vec approach (Mikolov, 2013).
 #
@@ -161,7 +161,7 @@ for i in range(RUNS):
     histories.append(history.history)
 
 # %% [markdown]
-# ### Image DenseNet121
+# ## Image Model train:  DenseNet121
 #
 # The image submodal is centered around the idea of transfer learning. CNN encoders pre-trained on ImageNet and National Health Institutes ChestX-ray14 gave several different experimentation combinations with diferent encoders (VGG, DenseNet, ResNet, etc.). The DenseNet121 (He et al., 2015) pre-trained on ChestX-ray14 was chosen as the encoder due to its superior accuracy. This encoder is then fed into a simple batch normalization which is then fed into a decoder for binary classification.
 
@@ -182,9 +182,8 @@ hist = model.fit(np.array(X_train_img), np.array(y_train), batch_size=32, epochs
 #model.save_weights('best_models/img_model-1.h5')
 
 # %% [markdown]
-# ### Multimodal
+# ## Multimodal train
 #
-# Below one can see how the multimodal is created. It is explicitly reconstructed for explanatory purposes
 
 # %%
 ###########################################
@@ -224,7 +223,7 @@ out = Dense(1, activation='softmax')(x)
 multi_model = Model([x_in, image_input] , out)
 ###########################################
 
-# %% vscode={"languageId": "plaintext"}
+# %%
 # multi_model.compile(loss='binary_crossentropy',optimizer=Adam(),metrics=['accuracy'])    
 hist = multi_model.fit(x = ([np.array(X_train_text),np.array(X_train_img)]), y = np.array(y_train), batch_size=32, epochs=3, verbose=1, validation_data=(([np.array(X_test_text),np.array(X_test_img)]), np.array(y_test)))
 #model.save_weights('best_models/multi_model-1.h5')

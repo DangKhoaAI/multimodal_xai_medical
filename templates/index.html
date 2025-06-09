@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block body %}
+<ul class="nav nav-tabs" id="mainTabs" role="tablist">
+  {% for tab_id, tab_info in tabs.items() %}
+  <li class="nav-item">
+    <a
+      class="nav-link {% if tab_id == active_tab_id %}active{% endif %}"
+      href="{{ url_for('index', active_tab_id=tab_id) }}"
+      role="tab"
+    >{{ tab_info.name }}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+<div class="tab-content">
+  {% for tab_id, tab_info in tabs.items() %}
+  <div class="tab-pane fade {% if tab_id == active_tab_id %}show active{% endif %}" id="{{ tab_id }}" role="tabpanel">
+    {% include tab_info.template %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

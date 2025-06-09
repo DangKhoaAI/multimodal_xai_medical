@@ -1,0 +1,73 @@
+/* Reset cơ bản */
+* {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    color: #333;
+  }
+  
+  /* Giãn chiều rộng tối đa, giảm padding bên trong */
+  header,
+  section {
+    max-width: 1200px;     /* Tăng từ 800px lên 1200px để tận dụng không gian */
+    padding: 1rem;         /* Giảm từ 2rem xuống 1rem */
+    margin: 0 auto;        /* Căn giữa nội dung */
+  }
+  
+  /* Responsive cho màn nhỏ */
+  @media (max-width: 768px) {
+    header,
+    section {
+      max-width: 100%;     /* Chiếm hết chiều ngang */
+      padding: 0.5rem;     /* Padding nhỏ hơn trên mobile */
+    }
+  }
+  
+  header {
+    background: #f5f5f5;
+    text-align: center;
+  }
+  
+  header img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  h1, h2, h3, h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  ul {
+    margin: 0.5rem 0 1rem 1.5rem;
+  }
+  
+  figure {
+    text-align: center;
+    margin: 2rem 0;
+  }
+  
+  figure img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: auto;
+  }
+  
+  figcaption {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 0.5rem;
+  }
+  
+  hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 3rem 0;
+  }
+  

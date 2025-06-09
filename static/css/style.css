@@ -1,0 +1,185 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5; /* Light gray background */
+    color: #333;
+    line-height: 1.6;
+    padding: 2rem; /* Moved from inline style */
+}
+
+.nav-tabs {
+    border-bottom: 2px solid #007bff; /* Blue bottom border for the tab container */
+}
+
+.nav-tabs .nav-item {
+    margin-bottom: -2px; /* Align with the border */
+}
+
+.nav-tabs .nav-link {
+    border: 1px solid transparent;
+    border-top-left-radius: .35rem;
+    border-top-right-radius: .35rem;
+    color: #0056b3; /* Darker blue for tab links */
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus {
+    border-color: #e9ecef #e9ecef #007bff;
+    background-color: #e9ecef; /* Light background on hover */
+    color: #003d80;
+}
+
+.nav-tabs .nav-link.active {
+    color: #fff; /* White text for active tab */
+    background-color: #007bff; /* Blue background for active tab */
+    border-color: #007bff #007bff #fff;
+    border-bottom: 2px solid #007bff; /* Ensure active tab visually merges with content */
+}
+
+.tab-content {
+    background-color: #fff; /* White background for tab content */
+    padding: 2rem;
+    border: 1px solid #dee2e6;
+    border-top: none; /* Remove top border as nav-tabs has bottom */
+    border-radius: 0 0 .25rem .25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+    margin-top: 0; /* Adjusted as border is now on nav-tabs */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #0056b3; /* Blue color for headings */
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+h2 {
+    font-size: 2rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+h3 {
+    font-size: 1.75rem;
+}
+
+p {
+    margin-bottom: 1rem;
+    color: #555; /* Slightly lighter text for paragraphs */
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border-radius: .25rem;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.form-control, .form-control-file {
+    border-radius: .25rem;
+    border: 1px solid #ced4da;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Card-like styling for sections if you want to use it */
+.content-section {
+    background-color: #fdfdfd;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: .25rem;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.04);
+}
+
+/* Style for images to be responsive and have a slight border */
+img.img-fluid {
+    max-width: 100%; /* Ensure it can fill its container */
+    height: auto;    /* Maintain aspect ratio */
+    border-radius: .25rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.04);
+}
+
+/* Specific styles for ai_healthcare.html if needed, can be kept in ai_healthcare.css or merged */
+/* For example, if header in ai_healthcare.html needs specific styling */
+#ai header { /* Assuming the header in ai_healthcare.html is within a div with id 'ai' or similar context */
+    background: #e0e8f0; /* Lighter blue-ish background for AI healthcare header */
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-radius: .25rem;
+}
+
+#ai header h1 {
+    color: #003d80; /* Darker blue for this specific H1 */
+}
+
+/* Ensure figures and images in ai_healthcare tab are styled nicely */
+#ai figure {
+    margin: 1.5rem 0;
+}
+
+#ai figure img {
+    border: 1px solid #ddd;
+    padding: 4px;
+    background-color: #fff;
+}
+
+#ai figcaption {
+    font-style: italic;
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* XAI tab specific styles */
+#xai p, #xai ul {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+#xai ul {
+    list-style-type: square;
+    padding-left: 20px;
+}
+
+/* Inference tab specific styles */
+#inference .form-group {
+    margin-bottom: 1.5rem;
+}
+
+#inference .row .col-md-6 img {
+    max-width: 100%; /* Ensure image can fill its column */
+    height: auto;    /* Maintain aspect ratio */
+    margin-top: 0.5rem;
+    border: 1px solid #ddd;
+    padding: 4px;
+}
+
+#inference h4 { /* Results heading */
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+/* Style for Plotly HTML fragment if it's in a div */
+.plotly-graph-div {
+    border: 1px solid #eee;
+    border-radius: .25rem;
+    padding: 10px;
+    margin-top: 1rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.04);
+}
+

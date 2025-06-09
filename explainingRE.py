@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Refactored script for evaluating and explaining multimodal (text and image)
-medical diagnosis models.
-
 This script performs two main tasks:
-1.  Evaluates the performance (AUC) of text-only, image-only, and
+1.  Eval: Evaluates the performance (AUC) of text-only, image-only, and
     multimodal models on a test set.
-2.  Generates feature-level explanations for both image (X-ray) and text
+2.  XAI:Generates feature-level explanations for both image (X-ray) and text
     (doctor's notes) data to identify anomalous regions or words.
 """
 
@@ -23,22 +20,23 @@ import scipy.cluster.hierarchy as hcluster
 import math
 import plotly.figure_factory as ff
 import plotly.io as pio
+from models.multimodalingRE import build_multimodal_model
 
 # --- Constants ---
 # File paths
 DATA_DIR = 'data/'
-MODEL_DIR = 'best_models/'
-TEXT_PROCESSED_PATH = f'{DATA_DIR}text_processed.pkl'
+MODEL_DIR = 'checkpoints/'
+TEXT_PROCESSED_PATH = f'{DATA_DIR}text_processed.pkl'   
 IMG_PROCESSED_PATH = f'{DATA_DIR}x_ray_processed.pkl'
 ORIGINAL_DATA_PATH = f'{DATA_DIR}ids_raw_texts_labels.csv'
 
 IMG_MODEL_PATH = f'{MODEL_DIR}img_model_final.h5'
 TXT_MODEL_PATH = f'{MODEL_DIR}text_model_final.h5'
-MRG_MODEL_PATH = f'{MODEL_DIR}full_model_final.h5'
+MRG_MODEL_PATH = f'{MODEL_DIR}multi_model.h5'
 
-IMG_WEIGHTS_PATH = f'{MODEL_DIR}image_weights_final.hdf5'
-TXT_WEIGHTS_PATH = f'{MODEL_DIR}textfinal_weights_best.hdf5'
-MRG_WEIGHTS_PATH = f'{MODEL_DIR}full_weights_best_final.hdf5'
+#IMG_WEIGHTS_PATH = f'{MODEL_DIR}image_weights_final.hdf5'
+#TXT_WEIGHTS_PATH = f'{MODEL_DIR}textfinal_weights_best.hdf5'
+#MRG_WEIGHTS_PATH = f'{MODEL_DIR}full_weights_best_final.hdf5'
 
 # Model & Data Parameters
 TEST_SET_SIZE = 0.2
@@ -58,52 +56,84 @@ pio.renderers.default = "browser"
 
 # Note: The original code depended on a custom `IntegratedGradients.py` module.
 # We are assuming it's available in the execution path.
-from IntegratedGradients import integrated_gradients
+from explainability.IntegratedGradients import integrated_gradients
 
 
-def load_and_prepare_data():
+
+import pickle
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+def load_and_prepare_data(
+    TEXT_PROCESSED_PATH,
+    IMG_PROCESSED_PATH,
+    ORIGINAL_DATA_PATH,
+    TEST_SET_SIZE=0.2,
+    RANDOM_STATE=42
+):
     """
-    Loads processed text, image, and raw text data, finds the intersection
-    of patient IDs, and splits the data into training and testing sets.
-
-    Returns:
-        A dictionary containing all data splits.
+    Loads processed text, processed image pkl, and original CSV (with raw text & labels),
+    aligns them by UID (stripped 'CXR' prefix), and returns train/test splits for:
+      - processed text
+      - processed images
+      - raw text
+      - labels
     """
-    print("Loading and preparing data...")
-    with open(TEXT_PROCESSED_PATH, 'rb') as handle:
-        text_data = pickle.load(handle)
-    with open(IMG_PROCESSED_PATH, 'rb') as handle:
-        img_data = pickle.load(handle)
+    # 1) Load processed text dict: "CXR123" -> token sequence
+    with open(TEXT_PROCESSED_PATH, 'rb') as f:
+        text_dict_full = pickle.load(f)
 
-    original_data = pd.read_csv(ORIGINAL_DATA_PATH)
-    original_data.set_index('ID', inplace=True)
+    # 2) Load processed image pkl: {'uids': [...], 'images': array, 'labels': array}
+    with open(IMG_PROCESSED_PATH, 'rb') as f:
+        img_pkl = pickle.load(f)
+    uids_img   = img_pkl['uids']
+    images     = img_pkl['images']
+    labels_img = img_pkl['labels']
 
-    # Find intersection of patient IDs
-    valid_ids = list(set(text_data.keys()) & set(img_data.keys()))
+    # 3) Build maps keyed by UID (without 'CXR')
+    text_uid_map  = {
+        full_id.replace('CXR','').strip(): seq
+        for full_id, seq in text_dict_full.items()
+    }
+    img_map       = dict(zip(uids_img, images))
+    label_map     = dict(zip(uids_img, labels_img))
 
-    # Align data based on valid IDs
-    raw_text = [original_data.loc[pid, 'Text'] for pid in valid_ids]
-    processed_text = [text_data[pid] for pid in valid_ids]
-    processed_img = [img_data[pid] for pid in valid_ids]
-    labels = [original_data.loc[pid, 'Labels'] for pid in valid_ids]
+    # 4) Load original CSV, assume it has columns 'ID', 'Text', 'Labels'
+    df = pd.read_csv(ORIGINAL_DATA_PATH)
+    df.set_index('ID', inplace=True)
+    raw_text_map = {
+        idx.replace('CXR','').strip(): df.loc[idx, 'Text']
+        for idx in df.index
+    }
 
-    # Split datasets with the same random state for consistency
-    X_train_text, X_test_text, y_train, y_test = train_test_split(
-        processed_text, labels, test_size=TEST_SET_SIZE, random_state=RANDOM_STATE
-    )
-    X_train_img, X_test_img, _, _ = train_test_split(
-        processed_img, labels, test_size=TEST_SET_SIZE, random_state=RANDOM_STATE
-    )
-    _, X_test_raw_text, _, _ = train_test_split(
-        raw_text, labels, test_size=TEST_SET_SIZE, random_state=RANDOM_STATE
+    # 5) Find common UIDs
+    common_uids = sorted(set(text_uid_map) & set(img_map) & set(raw_text_map))
+    print(f"→ Found {len(common_uids)} samples present in text, image & raw-text")
+
+    # 6) Build parallel lists/arrays
+    processed_text = np.stack([ text_uid_map[uid]  for uid in common_uids ], axis=0)
+    processed_img  = np.stack([ img_map[uid]       for uid in common_uids ], axis=0)
+    raw_text       = np.array([ raw_text_map[uid]  for uid in common_uids ])
+    labels         = np.array([ label_map[uid]     for uid in common_uids ], dtype=int)
+
+    # 7) Split train / test by indices to keep alignment
+    idxs = np.arange(len(common_uids))
+    train_idx, test_idx = train_test_split(
+        idxs, test_size=TEST_SET_SIZE, random_state=RANDOM_STATE
     )
 
     return {
-        "X_train_text": np.array(X_train_text), "X_test_text": np.array(X_test_text),
-        "X_train_img": np.array(X_train_img), "X_test_img": np.array(X_test_img),
-        "X_test_raw_text": X_test_raw_text,
-        "y_train": y_train, "y_test": y_test
+        "X_train_text":     processed_text[train_idx],
+        "X_test_text":      processed_text[test_idx],
+        "X_train_img":      processed_img[train_idx],
+        "X_test_img":       processed_img[test_idx],
+        "X_train_raw_text": raw_text[train_idx],
+        "X_test_raw_text":  raw_text[test_idx],
+        "y_train":          labels[train_idx],
+        "y_test":           labels[test_idx],
     }
+
 
 def load_all_models():
     """
@@ -113,14 +143,13 @@ def load_all_models():
         A dictionary containing the loaded models.
     """
     print("Loading pre-trained models and weights...")
-    img_model = load_model(IMG_MODEL_PATH)
-    img_model.load_weights(IMG_WEIGHTS_PATH)
+    img_model = load_model(IMG_MODEL_PATH , compile=False)
+    #img_model.load_weights(IMG_WEIGHTS_PATH)
 
-    text_model = load_model(TXT_MODEL_PATH)
-    text_model.load_weights(TXT_WEIGHTS_PATH)
-
-    merged_model = load_model(MRG_MODEL_PATH)
-    merged_model.load_weights(MRG_WEIGHTS_PATH)
+    text_model = load_model(TXT_MODEL_PATH , compile=False)
+    #text_model.load_weights(TXT_WEIGHTS_PATH)
+    merged_model = load_model(MRG_MODEL_PATH , compile=False)
+    #merged_model.load_weights(MRG_WEIGHTS_PATH)
 
     return {"image": img_model, "text": text_model, "multimodal": merged_model}
 

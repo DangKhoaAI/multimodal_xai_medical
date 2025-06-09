@@ -1,0 +1,108 @@
+<h3 style="font-size: 2rem; font-weight: bold;">Model Inference & XAI</h3>
+
+<form method="post" enctype="multipart/form-data">
+  <div class="form-group">
+    <label style="font-size: 1.2rem; font-weight: 500;">Mode:</label><br>
+    {% for opt, label in [('text','Text Only'),('image','Image Only'),('both','Both')] %}
+      <div class="form-check form-check-inline">
+        <input
+          class="form-check-input"
+          type="radio" name="mode" value="{{opt}}"
+          id="mode-{{opt}}"
+          {% if form_data.mode == opt %}checked{% endif %}
+        >
+        <label class="form-check-label" for="mode-{{opt}}" style="font-size: 1.1rem;">
+          {{label}}
+        </label>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="form-group" id="text-block"
+       {% if form_data.mode not in ['text','both'] %}style="display:none"{% endif %}>
+    <label for="text_data" style="font-size: 1.2rem;">Enter text:</label>
+    <textarea
+      class="form-control"
+      name="text_data"
+      id="text_data"
+      rows="4"
+      style="font-size: 1.1rem;"
+    >{{ form_data.text_data }}</textarea>
+  </div>
+
+  <div class="form-group" id="image-block"
+       {% if form_data.mode not in ['image','both'] %}style="display:none"{% endif %}>
+    <label for="image_data" style="font-size: 1.2rem;">Upload image:</label>
+    <input
+      type="file"
+      class="form-control-file"
+      name="image_data"
+      id="image_data"
+      style="font-size: 1.1rem;"
+    >
+  </div>
+
+  <button type="submit" class="btn btn-primary" style="font-size: 1.2rem;">Run</button>
+</form>
+
+<script>
+  // show/hide fields when mode changes
+  $('input[name=mode]').on('change', function(){
+    let m = $(this).val();
+    $('#text-block').toggle(m === 'text' || m === 'both');
+    $('#image-block').toggle(m === 'image' || m === 'both');
+  });
+</script>
+
+{% if results %}
+  <hr>
+  <h4 style="font-size: 1.7rem; font-weight: bold;">Results</h4>
+
+  {% if results.text_pred %}
+    <p style="font-size: 1.2rem;"><strong>Text Model Confidence:</strong> {{ results.text_pred }}</p>
+    <div class="text-explanation-container">
+      {{ results.text_explanation|safe }}
+    </div>
+    
+    <style>
+      .text-explanation-container {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        padding: 10px;
+        overflow-x: auto;
+        overflow-y: auto;
+        max-width: 100%;
+        max-height: 600px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+        zoom: 1.5;
+      }
+    
+      .text-explanation-container svg,
+      .text-explanation-container canvas {
+        width: 100% !important;
+        height: auto !important;
+      }
+    
+      .text-explanation-container text {
+        font-size: 16px !important;
+      }
+    </style>
+    
+  {% endif %}
+
+  {% if results.image_pred %}
+    <p style="font-size: 1.2rem;"><strong>Image Model Confidence:</strong> {{ results.image_pred }}</p>
+    <div class="row">
+      <div class="col-md-6">
+        <p style="font-size: 1.1rem;">Original:</p>
+        <img src="data:image/png;base64,{{ results.orig_image }}" class="img-fluid">
+      </div>
+      <div class="col-md-6">
+        <p style="font-size: 1.1rem;">XAI Overlay:</p>
+        <img src="data:image/png;base64,{{ results.xai_image }}" class="img-fluid">
+      </div>
+    </div>
+  {% endif %}
+{% endif %}

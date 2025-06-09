@@ -123,7 +123,7 @@ def load_image_data(image_dir: str, filenames: list) -> np.ndarray:
 # Model Builders
 # ------------------------
 def build_text_cnn(embedding_layer=None):
-    from cnn_model import build_cnn
+    from models.cnn_model import build_cnn
 
     return build_cnn(
         embedding_layer=embedding_layer,
