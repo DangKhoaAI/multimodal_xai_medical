@@ -1,2 +1,17 @@
-model/
+#model
+checkpoints/
+*.pt
+*.pth
+*.h5
+*.ckpt
+*.onnx
+
+# dataset
 data/
+*.zip
+*.tar.gz
+*.pkl
+
+#cache
+__pycache__/
+*.pyc
